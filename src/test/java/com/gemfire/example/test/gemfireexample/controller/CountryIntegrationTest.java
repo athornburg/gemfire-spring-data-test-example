@@ -57,6 +57,51 @@ class CountryIntegrationTest {
         assertThat(content).isEqualTo("{\"name\":\"USA\",\"capital\":\"Washington\"}");
     }
 
+    @Test
+    void country_savesAndRetrievesAllCountries_builtIn() throws Exception {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(new CountryController(countryRepository)).build();
+
+        String countryJson = "{\n" +
+                "  \"name\": \"USA\",\n" +
+                "  \"capital\": \"Washington\"\n" +
+                "}";
+
+        this.mockMvc.perform(post("/country")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(countryJson))
+                .andExpect(status().isOk());
+
+
+        String content = this.mockMvc.perform(get("/country").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+
+        assertThat(content).isEqualTo("[{\"name\":\"USA\",\"capital\":\"Washington\"}]");
+    }
+
+    @Test
+    void country_savesAndRetrievesAllCountries_byQuery() throws Exception {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(new CountryController(countryRepository)).build();
+
+        String countryJson = "{\n" +
+                "  \"name\": \"USA\",\n" +
+                "  \"capital\": \"Washington\"\n" +
+                "}";
+
+        this.mockMvc.perform(post("/country")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(countryJson))
+                .andExpect(status().isOk());
+
+
+        String content = this.mockMvc.perform(get("/country/byQuery").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+
+        assertThat(content).isEqualTo("[{\"name\":\"USA\",\"capital\":\"Washington\"}]");
+    }
 
     @EnableGemFireMockObjects
     @ClientCacheApplication
