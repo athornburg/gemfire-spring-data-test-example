@@ -3,20 +3,22 @@ package com.gemfire.example.test.gemfireexample.controller;
 import com.gemfire.example.test.gemfireexample.GemfireExampleApplication;
 import com.gemfire.example.test.gemfireexample.repo.CountryRepository;
 import org.apache.geode.cache.GemFireCache;
-import org.apache.geode.cache.client.ClientRegionShortcut;
+import org.junit.BeforeClass;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.gemfire.client.ClientRegionFactoryBean;
+import org.springframework.data.gemfire.config.annotation.CacheServerApplication;
 import org.springframework.data.gemfire.config.annotation.ClientCacheApplication;
 import org.springframework.data.gemfire.config.annotation.EnableEntityDefinedRegions;
-import org.springframework.data.gemfire.tests.mock.annotation.EnableGemFireMockObjects;
+import org.springframework.data.gemfire.tests.integration.ForkingClientServerIntegrationTestsSupport;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -24,10 +26,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {GemfireExampleApplication.class, CountryIntegrationTest.TestConfiguration.class})
-class CountryIntegrationTest {
+@SpringBootTest(classes = {GemfireExampleApplication.class, CountryIntegrationTest.GeodeClientTestConfiguration.class})
+class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport {
 
+    @BeforeClass
+    public static void startGemFireServer() throws IOException {
+        ForkingClientServerIntegrationTestsSupport.startGemFireServer(GeodeClientTestConfiguration.class);
+    }
 
     @Autowired
     private CountryRepository countryRepository;
@@ -103,19 +108,30 @@ class CountryIntegrationTest {
         assertThat(content).isEqualTo("[{\"name\":\"USA\",\"capital\":\"Washington\"}]");
     }
 
-    @EnableGemFireMockObjects
+    @CacheServerApplication
+    @EnableEntityDefinedRegions
+    static class GeodeServerTestConfiguration {
+
+        public static void main(String[] args) {
+
+            AnnotationConfigApplicationContext applicationContext =
+                    new AnnotationConfigApplicationContext(GeodeServerTestConfiguration.class);
+
+            applicationContext.registerShutdownHook();
+        }
+    }
+
     @ClientCacheApplication
-    @EnableEntityDefinedRegions(clientRegionShortcut = ClientRegionShortcut.LOCAL)
-    static class TestConfiguration {
-
+    @EnableEntityDefinedRegions
+    static class GeodeClientTestConfiguration {
         @Bean("country")
-        ClientRegionFactoryBean mockRegion(GemFireCache gemfireCache) {
+        ClientRegionFactoryBean exampleRegion(GemFireCache gemfireCache) {
 
-            ClientRegionFactoryBean mockRegion = new ClientRegionFactoryBean();
+            ClientRegionFactoryBean exampleRegion = new ClientRegionFactoryBean();
 
-            mockRegion.setCache(gemfireCache);
+            exampleRegion.setCache(gemfireCache);
 
-            return mockRegion;
+            return exampleRegion;
         }
     }
 }
