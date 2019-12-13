@@ -4,7 +4,8 @@ import com.gemfire.example.test.gemfireexample.GemfireExampleApplication;
 import com.gemfire.example.test.gemfireexample.repo.CountryRepository;
 import org.apache.geode.cache.GemFireCache;
 import org.junit.BeforeClass;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -15,6 +16,7 @@ import org.springframework.data.gemfire.config.annotation.ClientCacheApplication
 import org.springframework.data.gemfire.config.annotation.EnableEntityDefinedRegions;
 import org.springframework.data.gemfire.tests.integration.ForkingClientServerIntegrationTestsSupport;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -25,9 +27,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
+@RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GemfireExampleApplication.class, CountryIntegrationTest.GeodeClientTestConfiguration.class})
-class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport {
+public class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport {
 
     @BeforeClass
     public static void startGemFireServer() throws IOException {
@@ -40,7 +42,7 @@ class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport 
     private MockMvc mockMvc;
 
     @Test
-    void country_savesAndRetrievesCountriesFromGemfire() throws Exception {
+    public void country_savesAndRetrievesCountriesFromGemfire() throws Exception {
         this.mockMvc = MockMvcBuilders.standaloneSetup(new CountryController(countryRepository)).build();
 
         String countryJson = "{\n" +
@@ -63,7 +65,7 @@ class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport 
     }
 
     @Test
-    void country_savesAndRetrievesAllCountries_builtIn() throws Exception {
+    public void country_savesAndRetrievesAllCountries_builtIn() throws Exception {
         this.mockMvc = MockMvcBuilders.standaloneSetup(new CountryController(countryRepository)).build();
 
         String countryJson = "{\n" +
@@ -86,7 +88,7 @@ class CountryIntegrationTest extends ForkingClientServerIntegrationTestsSupport 
     }
 
     @Test
-    void country_savesAndRetrievesAllCountries_byQuery() throws Exception {
+    public void country_savesAndRetrievesAllCountries_byQuery() throws Exception {
         this.mockMvc = MockMvcBuilders.standaloneSetup(new CountryController(countryRepository)).build();
 
         String countryJson = "{\n" +
